@@ -1,0 +1,109 @@
+TabbedContent #--content-tab-vehicleData {
+    color: green;
+}
+
+TabbedContent #--content-tab-others {
+    color: red;
+}
+
+#progress_center {
+    margin-top: 1;
+    layout: horizontal;
+}
+
+#label_center {
+    margin-top: 1;
+    layout: horizontal;
+}
+
+Bar > .bar--complete {
+    color: $success;
+}
+
+Bar > .bar--bar {
+    color: $warning;
+}
+
+#speedometerDisplay {
+    width: 50%;
+    height: auto;
+}
+
+#batteryDisplay {
+    width: 50%;
+    height: auto;
+}
+
+#othersDisplay {
+    width: 50%;
+}
+
+#speedometerSpeed {
+    text-align: center;
+}
+
+#batteryLevel {
+    text-align: center;
+}
+
+#loading {
+    height: auto;
+}
+
+#vehicleData {
+    border: double green;
+    layout: horizontal;
+}
+
+#others {
+    border: double red;
+}
+
+#speedometer_container {
+    align: center middle;
+    height: auto;
+}
+
+#battery_container {
+    align: center middle;
+    height: auto;
+
+}
+
+Screen.narrow {
+    #vehicleData {
+        layout: vertical;
+    }
+}
+
+Screen.short {
+
+    #speedometerSpeed {
+        width: auto;
+        height: auto;
+    }
+
+    #batteryLevel {
+        width: auto;
+        height: auto;
+    }
+
+    #speedUnitLabel {
+        width: auto;
+        height: auto;
+    }
+
+    #batteryBar {
+        width: auto;
+        height: auto;
+    }
+
+    #battery_middle {
+        layout: horizontal;
+    }
+
+    #speed_middle {
+        layout: horizontal;
+    }
+
+}
