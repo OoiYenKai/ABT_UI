@@ -6,7 +6,7 @@ cd '/home/yenkai/Documents/CAG_Project'
 # source the virtual environment
 source myenv/bin/activate
 
-# Run the python script
-#./ABT_UI.py
-
 textual run --dev ABT_UI.py
+
+# When the app is not running anymore, bring down the CAN interface
+sudo ifconfig can0 down
