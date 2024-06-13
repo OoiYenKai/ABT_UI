@@ -1,7 +1,7 @@
 #! /usr/bin/bash
 
 # Change to the right directory
-cd '/home/yenkai/Documents/CAG_Project'
+cd ..
 
 #download the venv package
 sudo apt install python3.11-venv
