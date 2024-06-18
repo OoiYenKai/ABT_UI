@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
 
-# Import necessary modules from Textual library
+# Import necessary modules
 from textual.app import App, ComposeResult
 from textual.containers import Vertical, Center, Middle, Container
 from textual.events import Resize
 from textual.widgets import LoadingIndicator, TabbedContent, Label, Markdown, TabPane, ProgressBar, Static, Digits
 from textual.geometry import Size
 from textual import work
+import pygame
 
 # Import CAN interface and decoding functions from decoding module
 from decoding import CANInterface, decoding_speed, decoding_battery
 
+# Initialize Pygame mixer
+pygame.mixer.init()
+
+# Thresholds for alert
+SPEED_THRESHOLD = 40.0
+
+# Path to alert audio file
+ALERT_SOUND_PATH = "audio/alert.wav"
 
 SPEEDOMETER = """
 # Speed:
@@ -112,12 +121,19 @@ class SpeedometerApp(App):
         if speed_msg:
             speed = decoding_speed(speed_msg)
             self.call_from_thread(self.update_speed_ui, float(speed))
+            if float(speed) >= SPEED_THRESHOLD:
+                self.play_alert_sound()
 
         # Receive and process battery level data
         battery_msg = self.can_interface.receive_message(battery_msg_id, timeout=0.5)
         if battery_msg:
             battery = decoding_battery(battery_msg)
             self.call_from_thread(self.update_battery_ui, float(battery))
+
+    def play_alert_sound(self):
+        """Play alert sound using system"""
+        pygame.mixer.music.load(ALERT_SOUND_PATH)
+        pygame.mixer.music.play()
 
     def update_speed_ui(self, speed):
         """Update UI with the received speed data"""
