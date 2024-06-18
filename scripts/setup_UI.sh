@@ -3,8 +3,9 @@
 # Change to the right directory
 cd ..
 
-#download the venv package
-sudo apt install python3.11-venv
+# Determine the Python version and install the corresponding venv package 
+PYTHON_VERSION=$(python3 --version | cut -d " " -f 2 | cut -d "." -f 1,2)
+sudo apt install "python${PYTHON_VERSION}-venv"
 
 # Create a virtual environment
 python3 -m venv myenv
@@ -17,6 +18,7 @@ sudo apt install net-tools
 pip3 install textual
 pip3 install textual-dev
 pip3 install python-can
+pip3 install pygame
 
 # Get the directory where this script resides
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

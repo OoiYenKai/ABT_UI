@@ -1,16 +1,27 @@
 #!/usr/bin/env python3
 
-# Import necessary modules from Textual library
+# Import necessary modules
 from textual.app import App, ComposeResult
 from textual.containers import Vertical, Center, Middle, Container
 from textual.events import Resize
 from textual.widgets import LoadingIndicator, TabbedContent, Label, Markdown, TabPane, ProgressBar, Static, Digits
 from textual.geometry import Size
 from textual import work
+import pygame
+import threading
 
 # Import CAN interface and decoding functions from decoding module
 from decoding import CANInterface, decoding_speed, decoding_battery
 
+# Initialize Pygame mixer
+pygame.mixer.init()
+
+# Thresholds for alert
+SPEED_THRESHOLD = 40.0
+BATTERY_THRESHOLD = 5.0
+
+# Path to alert audio file
+ALERT_SOUND_PATH = "audio/alert.wav"
 
 SPEEDOMETER = """
 # Speed:
@@ -23,7 +34,6 @@ BATTERY = """
 OTHERS = """
 # This is a tab for future expansion.
 """
-
 
 # Static widget for displaying speedometer Digits
 class SpeedometerDigits(Static):
@@ -64,6 +74,7 @@ class SpeedometerApp(App):
         # Initialize CAN interface for handling CAN bus operations
         self.can_interface = CANInterface()
         self.can_interface.setup() # Setup CAN interface on initialization
+        self.battery_alert_triggered = False # Track if battery alert has been triggered
 
     def compose(self) -> ComposeResult:
         """Compose method defining the layout of the application"""
@@ -96,7 +107,7 @@ class SpeedometerApp(App):
     def on_mount(self) -> None:
         """
         Callback method called when the application mounts
-        Starts a infinite timer with 100 msecs intervals
+        Starts an infinite timer with 100 msecs intervals
         """
         self.DecodingStatus = self.set_interval(0.1, self.get_vehicle_data, pause=False)
 
@@ -112,12 +123,29 @@ class SpeedometerApp(App):
         if speed_msg:
             speed = decoding_speed(speed_msg)
             self.call_from_thread(self.update_speed_ui, float(speed))
+            if float(speed) >= SPEED_THRESHOLD and not self.battery_alert_triggered:
+                self.battery_alert_triggered = True
+                self.play_alert_sound()
 
         # Receive and process battery level data
         battery_msg = self.can_interface.receive_message(battery_msg_id, timeout=0.5)
         if battery_msg:
             battery = decoding_battery(battery_msg)
             self.call_from_thread(self.update_battery_ui, float(battery))
+            if float(battery) <= BATTERY_THRESHOLD and not self.battery_alert_triggered:
+                self.battery_alert_triggered = True
+                self.play_alert_sound()
+
+    def play_alert_sound(self):
+        """Play battery alert sound for 3 seconds"""
+        pygame.mixer.music.load(ALERT_SOUND_PATH)
+        pygame.mixer.music.play()
+        threading.Timer(3.5, self.stop_alert_sound).start()
+
+    def stop_alert_sound(self):
+        """Stop the alert sound"""
+        pygame.mixer.music.stop()
+        self.battery_alert_triggered = False
 
     def update_speed_ui(self, speed):
         """Update UI with the received speed data"""
