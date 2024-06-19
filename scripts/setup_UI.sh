@@ -19,6 +19,8 @@ pip3 install textual
 pip3 install textual-dev
 pip3 install python-can
 pip3 install pygame
+pip3 install pytest
+pip3 install pytest-mock
 
 # Get the directory where this script resides
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
