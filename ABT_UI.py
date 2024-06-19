@@ -60,7 +60,7 @@ class BatteryDigits(Static):
 
 
 # Main application class inheriting from App
-class SpeedometerApp(App):
+class ABTApp(App):
     # Key bindings for he application
     BINDINGS = [
         ("T", "toggle_dark_mode", "Toggle dark mode")
@@ -78,7 +78,7 @@ class SpeedometerApp(App):
 
     def compose(self) -> ComposeResult:
         """Compose method defining the layout of the application"""
-        with TabbedContent(initial="vehicleData"):
+        with TabbedContent(initial="vehicleData", id="UItabbedcontent"):
             with TabPane("Vehicle Data", id="vehicleData"):
                 with Vertical():
                     with Middle(id="speed_middle"):
@@ -178,7 +178,7 @@ class SpeedometerApp(App):
 
 if __name__ == "__main__":
     try:
-        app = SpeedometerApp()
+        app = ABTApp()
         app.run()
     except KeyboardInterrupt:
         app.quit_app()
