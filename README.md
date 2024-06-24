@@ -16,6 +16,7 @@ This Python application is designed to interface with a Vehicle Area Network (CA
   - Textual: For building the terminal UI.
   - Pygame: For playing audio alerts.
   - CAN (python-can): For interfacing with the CAN bus.
+  - Pytest: For unit testing
   
   
 ## Installation
