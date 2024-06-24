@@ -130,3 +130,6 @@ async def test_switch_tabs_by_key_press():
         others_tab = app.query_one("#others")
         assert others_tab.disabled == False, "Others tab should be active after key press"
         assert tabbed_content.active == "others"
+
+if __name__ == "__main__":
+    pytest.main()
