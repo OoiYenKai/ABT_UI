@@ -18,7 +18,8 @@ pygame.mixer.init()
 
 # Thresholds for alert
 SPEED_THRESHOLD = 40.0
-BATTERY_THRESHOLD = 5.0
+BATTERY_THRESHOLD = 20.0
+BATTERY_CRITICAL_THRESHOLD = 10.0
 
 # Path to alert audio file
 ALERT_SOUND_PATH = "audio/alert.wav"
@@ -47,7 +48,7 @@ class SpeedometerDigits(Static):
         return super().get_content_height(container, viewport, width)
 
 
-# static widget for displaying battery level Digits
+# Static widget for displaying battery level Digits
 class BatteryDigits(Static):
     def compose(self) -> ComposeResult:
         yield Digits(id="batteryLevel")
@@ -61,7 +62,7 @@ class BatteryDigits(Static):
 
 # Main application class inheriting from App
 class ABTApp(App):
-    # Key bindings for he application
+    # Key bindings for the application
     BINDINGS = [
         ("T", "toggle_dark_mode", "Toggle dark mode")
     ]
@@ -73,8 +74,10 @@ class ABTApp(App):
         super().__init__(**kwargs)
         # Initialize CAN interface for handling CAN bus operations
         self.can_interface = CANInterface()
-        self.can_interface.setup() # Setup CAN interface on initialization
-        self.battery_alert_triggered = False # Track if battery alert has been triggered
+        self.can_interface.setup()  # Setup CAN interface on initialization
+        self.battery_alert_triggered = False  # Track if battery alert has been triggered
+        self.battery_alert_active = True  # Track if battery alert is active
+        self.battery_critical_alert_active = True  # Track if critical battery alert is active
 
     def compose(self) -> ComposeResult:
         """Compose method defining the layout of the application"""
@@ -132,18 +135,45 @@ class ABTApp(App):
         if battery_msg:
             battery = decoding_battery(battery_msg)
             self.call_from_thread(self.update_battery_ui, float(battery))
-            if float(battery) <= BATTERY_THRESHOLD and not self.battery_alert_triggered:
-                self.battery_alert_triggered = True
+            if float(battery) <= BATTERY_CRITICAL_THRESHOLD and self.battery_critical_alert_active:
+                self.battery_critical_alert_active = False
+                self.play_critical_alert_sound()
+            elif float(battery) <= BATTERY_THRESHOLD and self.battery_alert_active and float(battery) > BATTERY_CRITICAL_THRESHOLD:
+                self.battery_alert_active = False
                 self.play_alert_sound()
+            elif float(battery) > BATTERY_CRITICAL_THRESHOLD and not self.battery_critical_alert_active:
+                self.battery_critical_alert_active = True
+            elif float(battery) > BATTERY_THRESHOLD and not self.battery_alert_active:
+                self.battery_alert_active = True
 
     def play_alert_sound(self):
         """Play battery alert sound for 3 seconds"""
         pygame.mixer.music.load(ALERT_SOUND_PATH)
         pygame.mixer.music.play()
-        threading.Timer(3.5, self.stop_alert_sound).start()
+        threading.Timer(3.0, self.stop_alert_sound).start()
+
+    def play_critical_alert_sound(self):
+        """Play critical battery alert sound 3 times at 1-second intervals"""
+        self.critical_alert_count = 0
+        self.play_critical_alert()
+
+    def play_critical_alert(self):
+        """Helper function to play critical alert sound"""
+        if self.critical_alert_count < 3:
+            pygame.mixer.music.load(ALERT_SOUND_PATH)
+            pygame.mixer.music.play()
+            self.critical_alert_count += 1
+            threading.Timer(1.0, self.play_critical_alert).start()
+        else:
+            self.stop_critical_alert_sound()
 
     def stop_alert_sound(self):
         """Stop the alert sound"""
+        pygame.mixer.music.stop()
+        self.battery_alert_triggered = False
+
+    def stop_critical_alert_sound(self):
+        """Stop the critical alert sound"""
         pygame.mixer.music.stop()
         self.battery_alert_triggered = False
 
@@ -170,10 +200,10 @@ class ABTApp(App):
 
     def quit_app(self):
         """Method to cleanly quit the UI application"""
-        self.workers.cancel_group(self, "threaded_worker") # Cancel threaded worker group
-        self.DecodingStatus.pause() # Pause decoding status timer
-        self.can_interface.shutdown() # Shutdown CAN interface
-        self.exit() # Exit the application
+        self.workers.cancel_group(self, "threaded_worker")  # Cancel threaded worker group
+        self.DecodingStatus.pause()  # Pause decoding status timer
+        self.can_interface.shutdown()  # Shutdown CAN interface
+        self.exit()  # Exit the application
 
 
 if __name__ == "__main__":
