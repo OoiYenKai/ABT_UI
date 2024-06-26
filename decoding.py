@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import can
+import math
 
 
 # Define CAN interface class for handling CAN bus operations
@@ -45,17 +46,17 @@ class CANInterface:
 
 # Function to decode speed from a CAN message
 def decoding_speed(msg):
-    byte2 = hex(msg.data[1]).replace("0x", "")
-    byte3 = hex(msg.data[2]).replace("0x", "")
-    xSpeed = byte3 + byte2  # speed in hexadecimal
-    dSpeed = int(xSpeed, 16)  # speed in decimal
-    speed = dSpeed / 256  # speed in km/h
+    byte5 = hex(msg.data[4]).replace("0x", "")
+    byte6 = hex(msg.data[5]).replace("0x", "")
+    xThrottle = byte6 + byte5  # Throttle(rpm) in hexadecimal
+    dThrottle = int(xThrottle, 16)  # Throttle(rpm) in decimal
+    speed = (math.pi * 0.7 * dThrottle * 60)/(24.2 * 1000) # Speed in Km/h
     return "{:.2f}".format(speed)
 
 # Function to decode battery levels from a CAN message
 def decoding_battery(msg):
-    byte2 = hex(msg.data[1]).replace("0x", "")
-    dbattery = int(byte2, 16)  # battery level in decimal
+    byte5 = hex(msg.data[4]).replace("0x", "")
+    dbattery = int(byte5, 16)  # battery level in decimal
     battery = dbattery * 0.4  # battery level in %
     return "{:.2f}".format(battery)
 
@@ -66,13 +67,13 @@ def main():
     can_interface.send_initial_message()
 
     # The specific CAN IDs to receive CAN messages from
-    speed_msg_id = 0x18FEF1C8
-    battery_msg_id = 0x18FEFCC8
+    rpm_msg_id = 0x385
+    battery_msg_id = 0x414
 
     while True:
-        speed_msg = can_interface.receive_message(speed_msg_id)
-        if speed_msg:
-            print("Speed:", decoding_speed(speed_msg))
+        rpm_msg = can_interface.receive_message(rpm_msg_id)
+        if rpm_msg:
+            print("Speed:", decoding_speed(rpm_msg))
 
         battery_msg = can_interface.receive_message(battery_msg_id)
         if battery_msg:

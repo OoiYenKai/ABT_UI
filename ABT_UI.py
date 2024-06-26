@@ -118,11 +118,11 @@ class ABTApp(App):
     @work(exclusive=True, thread=True, group="threaded_worker")
     async def get_vehicle_data(self) -> None:
         """The specific CAN IDs to receive CAN messages from"""
-        speed_msg_id = 0x18FEF1C8
-        battery_msg_id = 0x18FEFCC8
+        rpm_msg_id = 0x385
+        battery_msg_id = 0x414
 
         # Receive and process speed data
-        speed_msg = self.can_interface.receive_message(speed_msg_id, timeout=0.5)
+        speed_msg = self.can_interface.receive_message(rpm_msg_id, timeout=0.5)
         if speed_msg:
             speed = decoding_speed(speed_msg)
             self.call_from_thread(self.update_speed_ui, float(speed))
@@ -150,7 +150,7 @@ class ABTApp(App):
         """Play battery alert sound for 3 seconds"""
         pygame.mixer.music.load(ALERT_SOUND_PATH)
         pygame.mixer.music.play()
-        threading.Timer(3.0, self.stop_alert_sound).start()
+        threading.Timer(2.0, self.stop_alert_sound).start()
 
     def play_critical_alert_sound(self):
         """Play critical battery alert sound 3 times at 1-second intervals"""

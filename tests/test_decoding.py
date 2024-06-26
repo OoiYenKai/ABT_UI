@@ -27,13 +27,13 @@ def can_interface():
 
 def test_decoding_speed():
     # Create a mock CAN message for speed
-    msg = can.Message(arbitration_id=0x18FEF1C8, data=[0x00, 0xEA, 0x17, 0x00, 0x00, 0x00, 0x00, 0x00], is_extended_id=True)
+    msg = can.Message(arbitration_id=0x385, data=[0x00, 0x00, 0x00, 0x00, 0xEA, 0x17, 0x00, 0x00], is_extended_id=True)
     speed = decoding.decoding_speed(msg)
-    assert speed == "23.91"  # (0x17EA in hex is 6122 in decimal, 6122/256 = 23.91)
+    assert speed == "33.38"  # (0x17EA in hex is 6122 in decimal, 6122*0.7*pi*60/24.2*1000 = 33.38)
 
 def test_decoding_battery():
     # Create a mock CAN message for battery level
-    msg = can.Message(arbitration_id=0x18FEFCC8, data=[0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], is_extended_id=True)
+    msg = can.Message(arbitration_id=0x414, data=[0x00, 0x00, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00], is_extended_id=True)
     battery_level = decoding.decoding_battery(msg)
     assert battery_level == "40.00"  # (0x64 in hex is 100 in decimal, 100 * 0.4 = 40.0)
 
